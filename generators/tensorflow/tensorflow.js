@@ -1,4 +1,4 @@
-const LANGUAGE = "Keras";
+const LANGUAGE = "Tensorflow";
 
 const newline = `
 `;
@@ -9,13 +9,12 @@ function capitaliseFirstLetter(string) {
 
 const writePreamble = nodes => {
   const header = `'''
-Created by the GiraffeTools Keras generator.
+Created by the GiraffeTools Tensorflow generator.
 Warning, here be dragons.
 
 '''`;
 
-  const moduleImports = `
-import tensorflow as tf`;
+  const moduleImports = newline + newline + "import tensorflow as tf";
   const imports =
     nodes &&
     nodes.map(node => {
@@ -73,10 +72,10 @@ const writeNodes = (nodes, links) => {
     nodeList.length &&
     nodeList
       .map((node, index) => {
-        const nextNodeName = nodeList[index + 1] && nodeList[index + 1].name;
-        return itemToCode(node, nextNodeName);
+        const previousNodeName =
+          nodeList[index - 1] && nodeList[index - 1].name;
+        return itemToCode(node, previousNodeName);
       })
-      .reverse()
       .filter(code => code !== null);
   return code && code.join("\r\n");
 };
@@ -89,7 +88,7 @@ const argFromParam = parameter => {
   return code && code.argument;
 };
 
-const itemToCode = (node, nextNodeName) => {
+const itemToCode = (node, previousNodeName) => {
   const codeArgument =
     node.code &&
     node.code.length &&
@@ -157,7 +156,7 @@ const itemToCode = (node, nextNodeName) => {
   if (kwargs !== "") code += kwargs + "," + newline;
   code += name + newline + indent(4) + ")";
 
-  if (nextNodeName) code += `(${nextNodeName})`;
+  if (previousNodeName) code += `(${previousNodeName})`;
   code += newline;
 
   return code;
@@ -220,8 +219,10 @@ export function writeCode(nodes, links) {
 
 export function writeFiles(nodes, links) {
   const python_file = "GIRAFFE/code/neural_net.py";
+  const init_file = "GIRAFFE/code/__init__.py";
 
   return {
-    [python_file]: writeCode(nodes, links)
+    [python_file]: writeCode(nodes, links),
+    [init_file]: ""
   };
 }
