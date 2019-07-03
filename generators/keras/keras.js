@@ -1,5 +1,8 @@
 const LANGUAGE = "Keras";
 
+const newline = `
+`;
+const indent = n => " ".repeat(n);
 function capitaliseFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -97,9 +100,6 @@ const itemToCode = (node, nextNodeName) => {
 
   let code = "";
 
-  const newline = `
-`;
-  const indent = (n => " ".repeat(n));
   const { parameters } = node;
   const nodeName = node.name.toLowerCase();
   code += indent(4) + `${nodeName} = ${codeArgument.argument.name}(` + newline;
@@ -120,7 +120,9 @@ const itemToCode = (node, nextNodeName) => {
       // sort them by position, just to be sure
       .sort((a, b) => argFromParam(a).arg < argFromParam(b).arg)
       // fill in the values
-      .map(parameter => `${indent(6)}${parameter.value || "#mandatory argument"}`)
+      .map(
+        parameter => `${indent(6)}${parameter.value || "#mandatory argument"}`
+      )
       // join them up, comma separated
       .join("," + newline);
 
@@ -141,18 +143,22 @@ const itemToCode = (node, nextNodeName) => {
       // fill in the values
       .map(parameter => {
         const argument = argFromParam(parameter);
-        const value = (typeof parameter.value === "boolean") ? capitaliseFirstLetter(`${parameter.value}`) : parameter.value;
+        const value =
+          typeof parameter.value === "boolean"
+            ? capitaliseFirstLetter(`${parameter.value}`)
+            : parameter.value;
         return `${indent(6)}${parameter.name}=${value}`;
       })
       // join them up, comma separated
       .join("," + newline);
 
   const name = indent(6) + `name='${nodeName}'`;
-  if(args !== "") code += args + "," + newline;
-  if(kwargs !== "") code += kwargs + "," + newline;
+  if (args !== "") code += args + "," + newline;
+  if (kwargs !== "") code += kwargs + "," + newline;
   code += name + newline + indent(4) + ")";
 
   if (nextNodeName) code += `(${nextNodeName})`;
+  code += newline;
 
   return code;
 };
@@ -181,8 +187,9 @@ const writePostamble = (nodes, links) => {
   }
   const last_node = child;
 
-  const createModel = `
-    # Creating model
+  const createModel =
+    newline +
+    `    # Creating model
     _model = tf.keras.models.Model(
       inputs  = [${first_node.name}],
       outputs = [${nodes.find(node => node.id == nodeSequence.slice(-1)).name}]
@@ -209,4 +216,12 @@ export function writeCode(nodes, links) {
   const nodeCode = writeNodes(nodes, links);
   const postAmble = writePostamble(nodes, links);
   return [preamble, nodeCode, postAmble].join("\r\n");
+}
+
+export function writeFiles(nodes, links) {
+  const python_file = "GIRAFFE/code/neural_net.py";
+
+  return {
+    [python_file]: writeCode(nodes, links)
+  };
 }
