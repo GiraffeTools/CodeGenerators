@@ -26,7 +26,7 @@ const writePostamble = () => {
   return code;
 };
 
-export default function kerasCode(nodes, links) {
+export function writeCode(nodes, links) {
   const preamble = writePreamble(nodes);
   const nodeCode = writeNodes(nodes);
   // const parameters = writeParameters();

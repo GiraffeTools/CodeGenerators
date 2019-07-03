@@ -24,7 +24,7 @@ const nodeToCode = node => {
   return code;
 };
 
-export default async function tvmCode(nodes, links) {
+export async function writeCode(nodes, links) {
   const [error, components] = await to(Promise.all([nodeToCode(nodes)]));
 
   return components.join("\r\n");

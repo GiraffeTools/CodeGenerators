@@ -128,13 +128,19 @@ analysisflow.run(plugin=plugin, plugin_args=plugin_args)
 `;
 };
 
-export default function nipypeCode(nodes, links) {
+export function writeCode(nodes, links) {
   const preamble = writePreamble(nodes);
   const nodeCode = writeNodes(nodes);
   const linkCode = writeLinks(links);
-  // #TODO Make parameter editor and write out
-  // const parametrs = writeParameters();
   const postAmble = writePostamble();
 
   return [preamble, nodeCode, linkCode, postAmble].join("\r\n");
+}
+
+export function writeFiles(nodes, links) {
+  const python_file = "GIRAFFE/code/workflow.py";
+
+  return {
+    [python_file]: writeCode(nodes, links)
+  };
 }

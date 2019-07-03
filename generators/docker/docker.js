@@ -56,7 +56,7 @@ async function nodeCode(nodes) {
   return code.concat(snippetCode).join("\r\n");
 }
 
-export default async function dockerCode(nodes, links) {
+export async function writeCode(nodes, links) {
   const [error1, code] = await to(nodeCode(nodes));
   if (error1) return "Dockerfile cannot be generated";
   const [error2, dockerComponents] = await to(
@@ -68,4 +68,24 @@ export default async function dockerCode(nodes, links) {
   );
   if (error2) return "Dockerfile cannot be generated";
   return dockerComponents.join("\r\n");
+}
+
+export async function writeFiles(nodes, links) {
+  const docker_file = "GIRAFFE/code/Dockerfile";
+  const docker_compose_file = "GIRAFFE/code/docker-compose.yml";
+  const empty_file_temp = "GIRAFFE/code/temp/.empty";
+  const empty_file_output = "GIRAFFE/code/output/.empty";
+
+  return {
+    [docker_file]: await writeCode(nodes),
+    [docker_compose_file]: await (await fetch(
+      "/static/assets/misc/docker-compose.yml"
+    )).text(),
+    [empty_file_temp]: await (await fetch(
+      "/static/assets/misc/empty.txt"
+    )).text(),
+    [empty_file_output]: await (await fetch(
+      "/static/assets/misc/empty.txt"
+    )).text()
+  };
 }
