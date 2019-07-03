@@ -1,5 +1,9 @@
 const LANGUAGE = "Keras";
 
+function capitaliseFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 const writePreamble = nodes => {
   const header = `'''
 Created by the GiraffeTools Keras generator.
@@ -69,6 +73,7 @@ const writeNodes = (nodes, links) => {
         const nextNodeName = nodeList[index + 1] && nodeList[index + 1].name;
         return itemToCode(node, nextNodeName);
       })
+      .reverse()
       .filter(code => code !== null);
   return code && code.join("\r\n");
 };
@@ -92,9 +97,12 @@ const itemToCode = (node, nextNodeName) => {
 
   let code = "";
 
+  const newline = `
+`;
+  const indent = (n => " ".repeat(n));
   const { parameters } = node;
   const nodeName = node.name.toLowerCase();
-  code += `    ${nodeName} = ${codeArgument.argument.name}(`;
+  code += indent(4) + `${nodeName} = ${codeArgument.argument.name}(` + newline;
 
   let args, kwargs;
   args =
@@ -112,12 +120,9 @@ const itemToCode = (node, nextNodeName) => {
       // sort them by position, just to be sure
       .sort((a, b) => argFromParam(a).arg < argFromParam(b).arg)
       // fill in the values
-      .map(
-        parameter => `
-      ${parameter.value || "#mandatory argument"}`
-      )
+      .map(parameter => `${indent(6)}${parameter.value || "#mandatory argument"}`)
       // join them up, comma separated
-      .join(",");
+      .join("," + newline);
 
   kwargs =
     parameters &&
@@ -136,24 +141,18 @@ const itemToCode = (node, nextNodeName) => {
       // fill in the values
       .map(parameter => {
         const argument = argFromParam(parameter);
-        return `
-      ${parameter.name}=${parameter.value}`;
+        const value = (typeof parameter.value === "boolean") ? capitaliseFirstLetter(`${parameter.value}`) : parameter.value;
+        return `${indent(6)}${parameter.name}=${value}`;
       })
       // join them up, comma separated
-      .join(",");
+      .join("," + newline);
 
-  const name = `,
-      name='${nodeName}'`;
+  const name = indent(6) + `name='${nodeName}'`;
+  if(args !== "") code += args + "," + newline;
+  if(kwargs !== "") code += kwargs + "," + newline;
+  code += name + newline + indent(4) + ")";
 
-  // if both args and kwargs are defined, they need to be separated by a comma
-  const comma = kwargs !== "" && kwargs !== "" ? "," : "";
-  code += args + comma + kwargs + name;
-  code += `
-    )`;
-
-  if (nextNodeName)
-    code += `(${nextNodeName})
-  `;
+  if (nextNodeName) code += `(${nextNodeName})`;
 
   return code;
 };
