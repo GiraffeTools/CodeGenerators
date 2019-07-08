@@ -11,7 +11,9 @@ const writePreamble = nodes => {
 Created by the GiraffeTools Tensorflow generator.
 Warning, here be dragons.
 
-'''`;
+'''
+
+from keras.models import Sequential`;
 
   const imports =
     nodes &&
@@ -147,7 +149,7 @@ const writePostamble = () => {
   const returnModel =
     indent(4) +
     `# Returning model
-    return _model
+    return model
 `;
 
   return returnModel;
