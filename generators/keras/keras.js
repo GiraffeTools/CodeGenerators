@@ -1,4 +1,4 @@
-const LANGUAGE = "Tensorflow";
+const LANGUAGE = "Keras";
 
 const newline = "\n";
 const indent = n => " ".repeat(n);
@@ -13,7 +13,6 @@ Warning, here be dragons.
 
 '''`;
 
-  const moduleImports = newline + newline + "import tensorflow as tf";
   const imports =
     nodes &&
     nodes.map(node => {
@@ -28,19 +27,11 @@ Warning, here be dragons.
 
   const model = `
 # Model
-def NeuralNet(
-    optimizer='adam',
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
-  ):
+def NeuralNet(shape):
+    model = Sequential()
 `;
 
-  return [
-    header,
-    moduleImports,
-    [...new Set(imports)].join("\r\n"),
-    model
-  ].join("\r\n");
+  return [header, [...new Set(imports)].join(newline), model].join(newline);
 };
 
 const writeNodes = (nodes, links) => {
@@ -69,14 +60,8 @@ const writeNodes = (nodes, links) => {
   const nodeList = nodeSequence.map(id => nodes.find(node => node.id === id));
   const code =
     nodeList.length &&
-    nodeList
-      .map((node, index) => {
-        const previousNodeName =
-          nodeList[index - 1] && nodeList[index - 1].name;
-        return itemToCode(node, previousNodeName);
-      })
-      .filter(code => code !== null);
-  return code && code.join("\n");
+    nodeList.map(node => itemToCode(node)).filter(code => code !== null);
+  return code && code.join(newline);
 };
 
 const argFromParam = parameter => {
@@ -87,7 +72,7 @@ const argFromParam = parameter => {
   return code && code.argument;
 };
 
-const itemToCode = (node, previousNodeName) => {
+const itemToCode = node => {
   const codeArgument =
     node.code &&
     node.code.length &&
@@ -99,8 +84,7 @@ const itemToCode = (node, previousNodeName) => {
   let code = "";
 
   const { parameters } = node;
-  const nodeName = node.name.toLowerCase();
-  code += indent(4) + `${nodeName} = ${codeArgument.argument.name}(` + newline;
+  code += indent(4) + `model.add(${codeArgument.argument.name}(` + newline;
 
   let args, kwargs;
   args =
@@ -153,69 +137,26 @@ const itemToCode = (node, previousNodeName) => {
       // join them up, comma separated
       .join("," + newline);
 
-  const name = indent(6) + `name='${nodeName}'`;
-  if (args !== "") code += args + "," + newline;
-  if (kwargs !== "") code += kwargs + "," + newline;
-  code += name + newline + indent(4) + ")";
-
-  if (previousNodeName) code += `(${previousNodeName})`;
-  code += newline;
+  const comma = args !== "" && kwargs !== "" ? "," + newline : "";
+  code += args + comma + kwargs + newline + indent(4) + "))" + newline;
 
   return code;
 };
 
-const writePostamble = (nodes, links) => {
-  const inputs = links.map(link => link.portTo.id);
-  const first_node = nodes.find(node => {
-    const input = node.parameters.find(
-      parameter => parameter.input && parameter.name === ""
-    );
-    // if the input port is not connected, it's the first
-    return input && !inputs.includes(input.input);
-  });
-
-  if (!first_node) return null;
-
-  const getChild = nodeId => {
-    const link = links.find(link => link.portFrom.node.id === nodeId);
-    return link && link.portTo.node.id;
-  };
-  const nodeSequence = [first_node.id];
-  let child = getChild(first_node.id);
-  while (child && !nodeSequence.includes(child)) {
-    nodeSequence.push(child);
-    child = getChild(child);
-  }
-  const last_node = child;
-
-  const createModel =
-    newline +
-    `    # Creating model
-    _model = tf.keras.models.Model(
-      inputs  = [${first_node.name}],
-      outputs = [${nodes.find(node => node.id == nodeSequence.slice(-1)).name}]
-    )
-`;
-  const compileModel = `
-    _model.compile(
-      optimizer = optimizer,
-      loss      = loss,
-      metrics   = metrics
-    )
-`;
-
-  const returnModel = `
-    # Returning model
+const writePostamble = () => {
+  const returnModel =
+    indent(4) +
+    `# Returning model
     return _model
 `;
 
-  return createModel + compileModel + returnModel;
+  return returnModel;
 };
 
 export function writeCode(nodes, links) {
   const preamble = writePreamble(nodes);
   const nodeCode = writeNodes(nodes, links);
-  const postAmble = writePostamble(nodes, links);
+  const postAmble = writePostamble();
   return [preamble, nodeCode, postAmble].join("\r\n");
 }
 
