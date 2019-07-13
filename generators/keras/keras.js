@@ -102,7 +102,7 @@ const itemToCode = node => {
         );
       })
       // sort them by position, just to be sure
-      .sort((a, b) => argFromParam(a).arg < argFromParam(b).arg)
+      .sort((a, b) => argFromParam(a).arg > argFromParam(b).arg)
       // fill in the values
       .map(
         parameter =>
