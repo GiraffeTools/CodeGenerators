@@ -62,7 +62,9 @@ const writeNodes = (nodes, links) => {
   const nodeList = nodeSequence.map(id => nodes.find(node => node.id === id));
   const code =
     nodeList.length &&
-    nodeList.map(node => itemToCode(node)).filter(code => code !== null);
+    nodeList
+      .map((node, index) => itemToCode(node, index))
+      .filter(code => code !== null);
   return code && code.join(newline);
 };
 
@@ -74,7 +76,7 @@ const argFromParam = parameter => {
   return code && code.argument;
 };
 
-const itemToCode = node => {
+const itemToCode = (node, index) => {
   const codeArgument =
     node.code &&
     node.code.length &&
@@ -140,6 +142,11 @@ const itemToCode = node => {
       .join("," + newline);
 
   const comma = args !== "" && kwargs !== "" ? "," + newline : "";
+
+  if (index == 0) {
+    kwargs += comma + `${indent(6)}input_shape=shape`;
+  }
+
   code += args + comma + kwargs + newline + indent(4) + "))" + newline;
 
   return code;
