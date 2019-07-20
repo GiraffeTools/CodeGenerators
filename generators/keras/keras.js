@@ -141,12 +141,9 @@ const itemToCode = (node, index) => {
         .join(',' + newline);
 
   const comma = args !== '' && kwargs !== '' ? ',' + newline : '';
+  const inputShape = (index == 0) ? comma + `${indent(6)}input_shape=shape` : "";
 
-  if (index == 0) {
-    kwargs += comma + `${indent(6)}input_shape=shape`;
-  }
-
-  code += args + comma + kwargs + newline + indent(4) + '))' + newline;
+  code += args + comma + kwargs + inputShape + newline + indent(4) + '))' + newline;
 
   return code;
 };
