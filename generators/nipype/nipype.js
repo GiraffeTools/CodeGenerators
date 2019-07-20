@@ -1,41 +1,41 @@
-import { exceptionNodes, exceptionCode } from "./nipypeStupidExceptions";
+import {exceptionNodes, exceptionCode} from './nipypeStupidExceptions';
 
-const LANGUAGE = "Nipype";
+const LANGUAGE = 'Nipype';
 
-export const mapNodeFields = node => {
+export const mapNodeFields = (node) => {
   const iteratorFields = node.parameters
-    .filter(parameter => parameter.isIterable)
-    .map(parameter => parameter.name);
+      .filter((parameter) => parameter.isIterable)
+      .map((parameter) => parameter.name);
   return iteratorFields;
 };
 
-export const iterableCode = node => {
-  let iterables = {};
-  let givenName = node.name;
-  let code = "";
+export const iterableCode = (node) => {
+  const iterables = {};
+  const givenName = node.name;
+  let code = '';
   node.parameters &&
     node.parameters
-      .filter(parameter => parameter.value !== "" && parameter.input)
-      .forEach(parameter => {
-        if (parameter.isIterable) {
-          iterables[parameter.name] = parameter.value;
-        } else {
-          code += `${givenName}.inputs.${parameter.name} = ${
-            parameter.value
-          }\r\n`;
-        }
-      });
+        .filter((parameter) => parameter.value !== '' && parameter.input)
+        .forEach((parameter) => {
+          if (parameter.isIterable) {
+            iterables[parameter.name] = parameter.value;
+          } else {
+            code += `${givenName}.inputs.${parameter.name} = ${
+              parameter.value
+            }\r\n`;
+          }
+        });
   if (Object.keys(iterables).length) {
     code += `${node.name}.iterables = [${Object.keys(iterables)
-      .map(key => {
-        return `('${key}', ${iterables[key]})`;
-      })
-      .join(",")}]\r\n`;
+        .map((key) => {
+          return `('${key}', ${iterables[key]})`;
+        })
+        .join(',')}]\r\n`;
   }
   return code;
 };
 
-const writePreamble = nodes => {
+const writePreamble = (nodes) => {
   const preamble = `#This is a Nipype generator. Warning, here be dragons.
 #!/usr/bin/env python
 
@@ -46,9 +46,9 @@ import nipype.pipeline as pe
 
   const imports =
     nodes &&
-    nodes.map(node => {
+    nodes.map((node) => {
       const codeArgument =
-        node.code && node.code.find(a => a.language === LANGUAGE);
+        node.code && node.code.find((a) => a.language === LANGUAGE);
       return (
         codeArgument &&
         codeArgument.argument &&
@@ -56,24 +56,24 @@ import nipype.pipeline as pe
       );
     });
 
-  return [preamble, [...new Set(imports)].join("\r\n"), ""].join("\r\n");
+  return [preamble, [...new Set(imports)].join('\r\n'), ''].join('\r\n');
 };
 
-const writeNodes = nodes => {
-  const code = nodes && nodes.map(node => itemToCode(node));
-  return code && code.join("\r\n");
+const writeNodes = (nodes) => {
+  const code = nodes && nodes.map((node) => itemToCode(node));
+  return code && code.join('\r\n');
 };
 
-const writeLinks = links => {
-  let code = "";
-  code += "#Create a workflow to connect all those nodes\r\n";
-  code += "analysisflow = nipype.Workflow('MyWorkflow')\r\n";
-  code += links && links.map(link => linkToCode(link)).join("\r\n");
+const writeLinks = (links) => {
+  let code = '';
+  code += '#Create a workflow to connect all those nodes\r\n';
+  code += 'analysisflow = nipype.Workflow(\'MyWorkflow\')\r\n';
+  code += links && links.map((link) => linkToCode(link)).join('\r\n');
 
   return code;
 };
 
-const linkToCode = link => {
+const linkToCode = (link) => {
   if (
     link &&
     link.portFrom &&
@@ -81,21 +81,22 @@ const linkToCode = link => {
     link.portFrom.node &&
     link.portTo.node
   ) {
-    let source = link.portFrom.node.name;
-    let sourceAttribute = `${link.portFrom.name}`;
-    let destination = link.portTo.node.name;
-    let destinationAttribute = `${link.portTo.name}`;
+    const source = link.portFrom.node.name;
+    const sourceAttribute = `${link.portFrom.name}`;
+    const destination = link.portTo.node.name;
+    const destinationAttribute = `${link.portTo.name}`;
+    // eslint-disable-next-line
     return `analysisflow.connect(${source}, "${sourceAttribute}", ${destination}, "${destinationAttribute}")`;
   } else {
-    return "";
+    return '';
   }
 };
 
-const itemToCode = node => {
+const itemToCode = (node) => {
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
   if (!codeArgument) {
-    return "";
+    return '';
   }
 
   if (exceptionNodes.includes(codeArgument.argument.name)) {
@@ -103,9 +104,10 @@ const itemToCode = node => {
   }
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
-  let givenName = node.name;
+  const iteratorFields = mapNodeFields(node);
+  // #TODO condition on baing iterable
+  const nodeType = iteratorFields.length ? 'MapNode' : 'Node';
+  const givenName = node.name;
   code += `${givenName} = pe.${nodeType}(interface = ${
     codeArgument.argument.name
   }, name='${givenName}'`;
@@ -134,13 +136,13 @@ export function writeCode(nodes, links) {
   const linkCode = writeLinks(links);
   const postAmble = writePostamble();
 
-  return [preamble, nodeCode, linkCode, postAmble].join("\r\n");
+  return [preamble, nodeCode, linkCode, postAmble].join('\r\n');
 }
 
 export function writeFiles(nodes, links) {
-  const python_file = "GIRAFFE/code/workflow.py";
+  const pythonFile = 'GIRAFFE/code/workflow.py';
 
   return {
-    [python_file]: writeCode(nodes, links)
+    [pythonFile]: writeCode(nodes, links),
   };
 }

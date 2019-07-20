@@ -1,83 +1,93 @@
-import { iterableCode, mapNodeFields } from "./nipype";
+import {iterableCode, mapNodeFields} from './nipype';
 
-const LANGUAGE = "Nipype";
+const LANGUAGE = 'Nipype';
 
 export const exceptionNodes = [
-  "utility.IdentityInterface()",
-  "io.SelectFiles()",
-  "io.MySQLSink()",
-  "io.SQLiteSink()",
-  "io.S3DataGrabber()",
-  "io.DataGrabber()"
+  'utility.IdentityInterface()',
+  'io.SelectFiles()',
+  'io.MySQLSink()',
+  'io.SQLiteSink()',
+  'io.S3DataGrabber()',
+  'io.DataGrabber()',
 ];
 
-export const exceptionCode = node => {
+export const exceptionCode = (node) => {
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
-  if (codeArgument.argument.name === "utility.IdentityInterface()")
+  if (codeArgument.argument.name === 'utility.IdentityInterface()') {
     return codeForIdentityInterface(node);
-  if (codeArgument.argument.name === "io.SelectFiles()")
+  }
+  if (codeArgument.argument.name === 'io.SelectFiles()') {
     return codeForSelectFiles(node);
-  if (codeArgument.argument.name === "io.MySQLSink()")
+  }
+  if (codeArgument.argument.name === 'io.MySQLSink()') {
     return codeForMySQLSink(node);
-  if (codeArgument.argument.name === "io.SQLiteSink()")
+  }
+  if (codeArgument.argument.name === 'io.SQLiteSink()') {
     return codeForSQLiteSink(node);
-  if (codeArgument.argument.name === "io.S3DataGrabber()")
+  }
+  if (codeArgument.argument.name === 'io.S3DataGrabber()') {
     return codeForS3DataGrabber(node);
-  if (codeArgument.argument.name === "io.DataGrabber()")
+  }
+  if (codeArgument.argument.name === 'io.DataGrabber()') {
     return codeForDataGrabber(node);
-  return "";
+  }
+  return '';
 };
 
-export const codeForIdentityInterface = node => {
+export const codeForIdentityInterface = (node) => {
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  // let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
-  let nodeType = "Node"; // #TODO condition on being iterable
+  const iteratorFields = mapNodeFields(node);
+  // let nodeType = iteratorFields.length ? "MapNode" : "Node";
+  // #TODO condition on baing iterable
+  const nodeType = 'Node'; // #TODO condition on being iterable
 
   const fieldNodes =
     node.parameters &&
     node.parameters
-      .filter(parameter => parameter.input && parameter.output)
-      .map(parameter => parameter.name);
+        .filter((parameter) => parameter.input && parameter.output)
+        .map((parameter) => parameter.name);
 
-  let givenName = node.name;
+  const givenName = node.name;
   code += `${givenName} = pe.${nodeType}`;
   code += `(utility.IdentityInterface(fields=["${fieldNodes.join(
-    '", "'
+      '", "'
   )}"]), name='${givenName}'`;
   if (iteratorFields.length) {
-    code += `, iterfield = ['${iteratorFields.join("','")}']`;
+    code += `, iterfield = ['${iteratorFields.join('\',\'')}']`;
   }
   code += `)\r\n`;
   code += iterableCode(node);
   return code;
 };
 
-export const codeForSelectFiles = node => {
+export const codeForSelectFiles = (node) => {
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  // let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
-  let nodeType = "Node"; // #TODO condition on being iterable
-  let givenName = node.name;
+  const iteratorFields = mapNodeFields(node);
+  // let nodeType = iteratorFields.length ? "MapNode" : "Node";
+  // #TODO condition on baing iterable
+  const nodeType = 'Node'; // #TODO condition on being iterable
+  const givenName = node.name;
   code += `${givenName} = pe.${nodeType}`;
 
   const templateDictionary =
     node.parameters &&
     node.parameters
-      .filter(
-        parameter => parameter.input && parameter.output && parameter.value
-      )
-      .map(parameter => `'${parameter.name}':${parameter.value}`);
+        .filter(
+            (parameter) => parameter.input && parameter.output &&
+            parameter.value
+        )
+        .map((parameter) => `'${parameter.name}':${parameter.value}`);
 
-  code += `(io.SelectFiles(templates={${templateDictionary.join()}}), name='${givenName}'`;
+  code += `(io.SelectFiles(templates={${templateDictionary.join()
+  }}), name='${givenName}'`;
   if (iteratorFields.length) {
     code += `, iterfield = ['${iteratorFields.join('", "')}']`;
   }
@@ -86,23 +96,23 @@ export const codeForSelectFiles = node => {
   return code;
 };
 
-export const codeForMySQLSink = node => {
+export const codeForMySQLSink = (node) => {
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
+  const iteratorFields = mapNodeFields(node);
+  // #TODO condition on baing iterable
 
   const fieldNodes =
     node.parameters &&
     node.parameters
-      .filter(parameter => parameter.input && parameter.output)
-      .map(parameter => parameter.name);
+        .filter((parameter) => parameter.input && parameter.output)
+        .map((parameter) => parameter.name);
 
-  let givenName = node.name;
+  const givenName = node.name;
   code += `(io.MySQLSink(fields=['${fieldNodes.join(
-    ","
+      ','
   )}']), name='${givenName}'`;
   if (!iteratorFields.length) {
     code += `, iterfield = ['${iteratorFields.join(`', '`)}']`;
@@ -112,23 +122,23 @@ export const codeForMySQLSink = node => {
   return code;
 };
 
-export const codeForSQLiteSink = node => {
+export const codeForSQLiteSink = (node) => {
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
+  const iteratorFields = mapNodeFields(node);
+  // #TODO condition on baing iterable
 
   const fieldNodes =
     node.parameters &&
     node.parameters
-      .filter(parameter => parameter.input && parameter.output)
-      .map(parameter => parameter.name);
+        .filter((parameter) => parameter.input && parameter.output)
+        .map((parameter) => parameter.name);
 
-  let givenName = node.name;
+  const givenName = node.name;
   code += `(utility.SQLiteSink(fields=['${fieldNodes.join(
-    ","
+      ','
   )}']), name='${givenName}'`;
   if (!iteratorFields.length) {
     code += `, iterfield = ['${iteratorFields.join(`', '`)}']`;
@@ -138,44 +148,45 @@ export const codeForSQLiteSink = node => {
   return code;
 };
 
-export const codeForS3DataGrabber = node => {
+export const codeForS3DataGrabber = (node) => {
   const standardPorts = [
-    "anon",
-    "region",
-    "bucket",
-    "bucket_path",
-    "local_directory",
-    "raise_on_empty",
-    "sort_filelist",
-    "template",
-    "template_args",
-    "ignore_exception"
+    'anon',
+    'region',
+    'bucket',
+    'bucket_path',
+    'local_directory',
+    'raise_on_empty',
+    'sort_filelist',
+    'template',
+    'template_args',
+    'ignore_exception',
   ];
 
   const infields = node.parameters
-    .filter(p => p.input)
-    .filter(p => !standardPorts.includes(p.name))
-    .map(p => p.name);
+      .filter((p) => p.input)
+      .filter((p) => !standardPorts.includes(p.name))
+      .map((p) => p.name);
 
   const outfields = node.parameters
-    .filter(p => p.output)
-    .filter(p => !standardPorts.includes(p.name))
-    .map(p => p.name);
+      .filter((p) => p.output)
+      .filter((p) => !standardPorts.includes(p.name))
+      .map((p) => p.name);
 
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
-  let givenName = node.name;
+  const iteratorFields = mapNodeFields(node);
+  const nodeType = iteratorFields.length ? 'MapNode' : 'Node';
+  // #TODO condition on baing iterable
+  const givenName = node.name;
   code += `${givenName} = pe.${nodeType}(io.S3DataGrabber(`;
   if (infields.length) code += `infields=["${infields.join('", "')}"]`;
-  if (infields.length && outfields.length) code += ", ";
+  if (infields.length && outfields.length) code += ', ';
   if (outfields.length) code += `outfields=["${outfields.join('", "')}"]`;
   code += `), name = '${givenName}'`;
   if (!iteratorFields.length) {
-    code += ")\r\n";
+    code += ')\r\n';
   } else {
     `, iterfield = ['${iteratorFields.join('", "')}'])\n`;
   }
@@ -184,40 +195,41 @@ export const codeForS3DataGrabber = node => {
   return code;
 };
 
-export const codeForDataGrabber = node => {
+export const codeForDataGrabber = (node) => {
   const standardPorts = [
-    "sort_filelist",
-    "template",
-    "base_directory",
-    "raise_on_empty",
-    "drop_blank_outputs",
-    "template_args"
+    'sort_filelist',
+    'template',
+    'base_directory',
+    'raise_on_empty',
+    'drop_blank_outputs',
+    'template_args',
   ];
 
   const infields = node.parameters
-    .filter(p => p.input)
-    .filter(p => !standardPorts.includes(p.name))
-    .map(p => p.name);
+      .filter((p) => p.input)
+      .filter((p) => !standardPorts.includes(p.name))
+      .map((p) => p.name);
 
   const outfields = node.parameters
-    .filter(p => p.output)
-    .filter(p => !standardPorts.includes(p.name))
-    .map(p => p.name);
+      .filter((p) => p.output)
+      .filter((p) => !standardPorts.includes(p.name))
+      .map((p) => p.name);
 
   const codeArgument =
-    node.code && node.code.find(a => a.language === LANGUAGE);
+    node.code && node.code.find((a) => a.language === LANGUAGE);
 
   let code = `#${codeArgument.comment}\r\n`;
-  let iteratorFields = mapNodeFields(node);
-  let nodeType = iteratorFields.length ? "MapNode" : "Node"; // #TODO condition on baing iterable
-  let givenName = node.name;
+  const iteratorFields = mapNodeFields(node);
+  const nodeType = iteratorFields.length ? 'MapNode' : 'Node';
+  // #TODO condition on baing iterable
+  const givenName = node.name;
   code += `${givenName} = pe.${nodeType}(io.DataGrabber(`;
   if (infields.length) code += `infields=["${infields.join('", "')}"]`;
-  if (infields.length && outfields.length) code += ", ";
+  if (infields.length && outfields.length) code += ', ';
   if (outfields.length) code += `outfields=["${outfields.join('", "')}"]`;
   code += `), name = '${givenName}'`;
   if (!iteratorFields.length) {
-    code += ")\r\n";
+    code += ')\r\n';
   } else {
     `, iterfield = ['${iteratorFields.join('", "')}'])\n`;
   }
