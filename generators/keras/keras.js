@@ -96,6 +96,7 @@ const itemToCode = (node, index) => {
     parameters
     // filter the positional arguments
         .filter((parameter) => {
+          const argument = argFromParam(parameter);
           return (
             argument &&
           typeof argument.arg === 'number' &&
