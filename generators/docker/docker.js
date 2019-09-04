@@ -28,7 +28,7 @@ async function nodeCode(nodes) {
     'ants',
     'freesurfer',
     'fsl',
-    'mrtrix',
+    'mrtrix3',
     'Nipype',
     'spm',
   ];
