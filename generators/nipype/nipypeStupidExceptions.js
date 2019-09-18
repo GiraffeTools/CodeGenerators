@@ -11,32 +11,32 @@ export const exceptionNodes = [
   'io.DataGrabber()',
 ];
 
-export const exceptionCode = (node) => {
+export const exceptionCode = (node, links) => {
   const codeArgument =
     node.code && node.code.find((a) => a.language === LANGUAGE);
 
   if (codeArgument.argument.name === 'utility.IdentityInterface()') {
-    return codeForIdentityInterface(node);
+    return codeForIdentityInterface(node, links);
   }
   if (codeArgument.argument.name === 'io.SelectFiles()') {
-    return codeForSelectFiles(node);
+    return codeForSelectFiles(node, links);
   }
   if (codeArgument.argument.name === 'io.MySQLSink()') {
-    return codeForMySQLSink(node);
+    return codeForMySQLSink(node, links);
   }
   if (codeArgument.argument.name === 'io.SQLiteSink()') {
-    return codeForSQLiteSink(node);
+    return codeForSQLiteSink(node, links);
   }
   if (codeArgument.argument.name === 'io.S3DataGrabber()') {
-    return codeForS3DataGrabber(node);
+    return codeForS3DataGrabber(node, links);
   }
   if (codeArgument.argument.name === 'io.DataGrabber()') {
-    return codeForDataGrabber(node);
+    return codeForDataGrabber(node, links);
   }
   return '';
 };
 
-export const codeForIdentityInterface = (node) => {
+export const codeForIdentityInterface = (node, links) => {
   const codeArgument =
     node.code && node.code.find((a) => a.language === LANGUAGE);
 
@@ -61,11 +61,11 @@ export const codeForIdentityInterface = (node) => {
     code += `, iterfield = ['${iteratorFields.join('\',\'')}']`;
   }
   code += `)\r\n`;
-  code += iterableCode(node);
+  code += iterableCode(node, links);
   return code;
 };
 
-export const codeForSelectFiles = (node) => {
+export const codeForSelectFiles = (node, links) => {
   const codeArgument =
     node.code && node.code.find((a) => a.language === LANGUAGE);
 
@@ -92,11 +92,11 @@ export const codeForSelectFiles = (node) => {
     code += `, iterfield = ['${iteratorFields.join('", "')}']`;
   }
   code += `)\r\n`;
-  code += iterableCode(node);
+  code += iterableCode(node, links);
   return code;
 };
 
-export const codeForMySQLSink = (node) => {
+export const codeForMySQLSink = (node, links) => {
   const codeArgument =
     node.code && node.code.find((a) => a.language === LANGUAGE);
 
@@ -118,11 +118,11 @@ export const codeForMySQLSink = (node) => {
     code += `, iterfield = ['${iteratorFields.join(`', '`)}']`;
   }
   code += `)\r\n`;
-  code += iterableCode(node);
+  code += iterableCode(node, links);
   return code;
 };
 
-export const codeForSQLiteSink = (node) => {
+export const codeForSQLiteSink = (node, links) => {
   const codeArgument =
     node.code && node.code.find((a) => a.language === LANGUAGE);
 
@@ -144,11 +144,11 @@ export const codeForSQLiteSink = (node) => {
     code += `, iterfield = ['${iteratorFields.join(`', '`)}']`;
   }
   code += `)\r\n`;
-  code += iterableCode(node);
+  code += iterableCode(node, links);
   return code;
 };
 
-export const codeForS3DataGrabber = (node) => {
+export const codeForS3DataGrabber = (node, links) => {
   const standardPorts = [
     'anon',
     'region',
@@ -191,11 +191,11 @@ export const codeForS3DataGrabber = (node) => {
     `, iterfield = ['${iteratorFields.join('", "')}'])\n`;
   }
 
-  code += iterableCode(node);
+  code += iterableCode(node, links);
   return code;
 };
 
-export const codeForDataGrabber = (node) => {
+export const codeForDataGrabber = (node, links) => {
   const standardPorts = [
     'sort_filelist',
     'template',
@@ -234,6 +234,6 @@ export const codeForDataGrabber = (node) => {
     `, iterfield = ['${iteratorFields.join('", "')}'])\n`;
   }
 
-  code += iterableCode(node);
+  code += iterableCode(node, links);
   return code;
 };

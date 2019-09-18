@@ -13,7 +13,8 @@ Warning, here be dragons.
 
 '''
 
-from keras.models import Sequential`;
+from keras.models import Model
+from keras.layers import Input`;
 
   const imports =
     nodes &&
@@ -29,8 +30,8 @@ from keras.models import Sequential`;
 
   const model = `
 # Model
-def NeuralNet(shape):
-    model = Sequential()
+def NeuralNet(input_shape, num_classes):
+    next_layer = Input(shape=input_shape)
 `;
 
   return [header, [...new Set(imports)].join(newline), model].join(newline);
@@ -89,7 +90,7 @@ const itemToCode = (node, index) => {
   let code = '';
 
   const {parameters} = node;
-  code += indent(4) + `model.add(${codeArgument.argument.name}(` + newline;
+  code += indent(4) + `next_layer = ${codeArgument.argument.name}(` + newline;
 
   const args =
     parameters &&
@@ -141,11 +142,9 @@ const itemToCode = (node, index) => {
         .join(',' + newline);
 
   const comma = args !== '' && kwargs !== '' ? ',' + newline : '';
-  const inputShape = (index == 0) ? (comma +
-    `${indent(6)}input_shape=shape`) : '';
 
-  code += args + comma + kwargs + inputShape +
-          newline + indent(4) + '))' + newline;
+  code += args + comma + kwargs +
+          newline + indent(4) + ')(next_layer)' + newline;
 
   return code;
 };

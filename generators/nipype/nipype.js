@@ -9,13 +9,18 @@ export const mapNodeFields = (node) => {
   return iteratorFields;
 };
 
-export const iterableCode = (node) => {
+export const iterableCode = (node, links) => {
   const iterables = {};
   const givenName = node.name;
   let code = '';
+  const inputLinks = links ? links.map((link) => link.portTo.id) : [];
+
+  debugger;
   node.parameters &&
     node.parameters
-        .filter((parameter) => parameter.value !== '' && parameter.input)
+        .filter((parameter) => parameter.input)
+        .filter((parameter) => parameter.value !== '')
+        .filter((parameter) => !inputLinks.includes(parameter.input))
         .forEach((parameter) => {
           if (parameter.isIterable) {
             iterables[parameter.name] = parameter.value;
@@ -59,8 +64,8 @@ import nipype.pipeline as pe
   return [preamble, [...new Set(imports)].join('\r\n'), ''].join('\r\n');
 };
 
-const writeNodes = (nodes) => {
-  const code = nodes && nodes.map((node) => itemToCode(node));
+const writeNodes = (nodes, links) => {
+  const code = nodes && nodes.map((node) => itemToCode(node, links));
   return code && code.join('\r\n');
 };
 
@@ -92,7 +97,7 @@ const linkToCode = (link) => {
   }
 };
 
-const itemToCode = (node) => {
+const itemToCode = (node, links) => {
   const codeArgument =
     node.code && node.code.find((a) => a.language === LANGUAGE);
   if (!codeArgument) {
@@ -100,7 +105,7 @@ const itemToCode = (node) => {
   }
 
   if (exceptionNodes.includes(codeArgument.argument.name)) {
-    return exceptionCode(node);
+    return exceptionCode(node, links);
   }
 
   let code = `#${codeArgument.comment}\r\n`;
@@ -115,7 +120,7 @@ const itemToCode = (node) => {
     code += `, iterfield = ['${iteratorFields.join(`', '`)}']`;
   }
   code += `)\r\n`;
-  code += iterableCode(node);
+  code += iterableCode(node, links);
 
   return code;
 };
@@ -132,7 +137,7 @@ analysisflow.run(plugin=plugin, plugin_args=plugin_args)
 
 export function writeCode(nodes, links) {
   const preamble = writePreamble(nodes);
-  const nodeCode = writeNodes(nodes);
+  const nodeCode = writeNodes(nodes, links);
   const linkCode = writeLinks(links);
   const postAmble = writePostamble();
 
